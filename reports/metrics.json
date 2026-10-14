@@ -224,30 +224,46 @@
     "margin_resid_sigma": 14.310274345823483,
     "total_resid_sigma": 18.893833926141486
   },
-  "market_backtest_2025_26": {
-    "matched_games": 1267,
-    "odds_rows": 1267,
-    "unmatched_odds_rows": 0,
+  "market_backtest_closing_2024_26": {
+    "source_files": [
+      "nba_2024_25_closing_lines_ats.csv",
+      "nba_2025_26_closing_lines_ats.csv"
+    ],
+    "matched_games": 2622,
+    "odds_rows": 2629,
+    "unmatched_odds_rows": 7,
+    "by_odds_season": {
+      "2024-25": 1307,
+      "2025-26": 1315
+    },
     "moneyline": {
-      "market_favourite_accuracy": 0.665351223362273,
-      "model_accuracy": 0.6740331491712708,
-      "model_accuracy_when_disagreeing_with_market": 0.5230125523012552,
-      "n_disagreements": 239,
-      "model_log_loss": 0.6078048641339134,
-      "market_log_loss_no_vig": 0.5906203309263734
+      "market_favourite_accuracy": 0.6880244088482075,
+      "model_accuracy": 0.6575133485888635,
+      "model_accuracy_when_disagreeing_with_market": 0.40384615384615385,
+      "n_disagreements": 416,
+      "model_log_loss": 0.6181295137083068,
+      "market_log_loss_close_no_vig": 0.5805348880433747,
+      "market_log_loss_open_no_vig": 0.5912762594788364,
+      "model_accuracy_when_edge_ge_5pts": 0.6208991494532199,
+      "n_edge_ge_5pts": 1646,
+      "model_mean_prob": 0.5996282913428475,
+      "market_mean_prob": 0.551968115942029,
+      "actual_home_win_rate": 0.5503432494279176
     },
     "spread": {
-      "model_ats_accuracy_excl_pushes": 0.4843624699278268,
-      "pushes": 20,
-      "n": 1267
+      "model_ats_accuracy_excl_pushes": 0.49294162533384206,
+      "home_cover_rate_excl_pushes": 0.5093475772605875,
+      "pushes": 1,
+      "n": 2622
     },
     "total_market": {
-      "model_ou_accuracy_excl_pushes": 0.48242811501597443,
-      "pushes": 15,
-      "n": 1267
+      "model_ou_accuracy_excl_pushes": 0.4853109500190767,
+      "over_rate_excl_pushes": 0.5108737123235406,
+      "pushes": 1,
+      "n": 2622
     },
-    "margin_mae_on_market_games": 11.674266642250922,
-    "total_mae_on_market_games": 15.468128831752985
+    "margin_mae_on_market_games": 11.47377870945789,
+    "total_mae_on_market_games": 15.26381761435615
   },
   "player_props": {
     "points": {

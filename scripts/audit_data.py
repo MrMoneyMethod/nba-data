@@ -88,6 +88,34 @@ def main() -> None:
               "- Not used by the v1 engine (box-score rolling form captures most signal at "
               "1/100th the compute); reserved for future lineup/possession features.", ""]
 
+    # ---- Closing lines (second upload) -------------------------------
+    closing_lines = ["## Closing-lines files (nba_2024_25 / nba_2025_26_closing_lines_ats.csv)", ""]
+    closers = {}
+    for f in ["nba_2024_25_closing_lines_ats.csv", "nba_2025_26_closing_lines_ats.csv",
+              "nba_2026_27_odds.csv"]:
+        d = pd.read_csv(ROOT / f, parse_dates=["date_et"])
+        closers[f] = d
+        closing_lines.append(f"- `{f}`: {len(d):,} rows | {d.date_et.min().date()} → {d.date_et.max().date()} | "
+                     f"season col={sorted(d.season.unique())} | types={d.season_type.value_counts().to_dict()} | "
+                     f"nulls close_prob/spread/total = {d.close_home_win_prob.isna().sum()}/"
+                     f"{d.close_spread_home.isna().sum()}/{d.close_total.isna().sum()}")
+    a, b = closers["nba_2025_26_closing_lines_ats.csv"], closers["nba_2026_27_odds.csv"]
+    same_ids = bool((a.game_id.values == b.game_id.values).all())
+    same_scores = bool(((a.home_score == b.home_score) & (a.away_score == b.away_score)).all())
+    closing_lines += [f"- **WARNING: `nba_2026_27_odds.csv` is a mislabeled duplicate of 2025-26** "
+              f"(identical game_id order: {same_ids}; identical scores: {same_scores}; only its "
+              "`season` column and bookmaker count differ). It contains no 2026-27 fixtures and "
+              "is excluded from training/evaluation until a real 2026-27 file replaces it.",
+              "- Join keys: `date_et` + full team names. Odds names use 'Los Angeles Clippers' "
+              "while Games.csv uses 'LA Clippers' in 2025-26 (aliased in train.py). A handful of "
+              "2024-25 rows do not match Games.csv on date+teams (rescheduled games) and 2 Games.csv "
+              "rows carry 0-0 scores (2025-03-19 UTA-WAS, 2025-04-01 SAS-ORL; dropped as 'ties').",
+              "- `NBA_Closing_Odds_SAMPLE.csv`: 20 rows from 2008, no spread/total -- not used.",
+              "- Only pre-game lines (open/close win prob, spread, total) are used, for evaluation "
+              "only; outcome columns (`ats_result`, `favorite_won`, `total_result`, ...) are never features.",
+              ""]
+    lines += closing_lines
+
     # ---- Odds sample ----------------------------------------------------
     odds = pd.read_csv(ROOT / "nba_game_scores_1g_2025_26_sample.csv", parse_dates=["date"])
     lines += ["## nba_game_scores_1g_2025_26_sample.csv (market sample)",

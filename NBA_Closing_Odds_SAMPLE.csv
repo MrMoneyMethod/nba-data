@@ -1,0 +1,21 @@
+﻿League,Season,Stage,Date,Time,Home_Team,Away_Team,Home_Score,Away_Score,Winner,Total_Score,Margin,Match_Ending,Final_Result_Only,Home_Odds,Draw_Odds,Away_Odds,Bookmakers
+NBA,2008/2009,Regular Season,2008-10-29,01:00,Boston Celtics,Cleveland Cavaliers,90,85,Home,175,5,Regular Time,No,-263,,229,1
+NBA,2008/2009,Regular Season,2008-10-29,01:30,Chicago Bulls,Milwaukee Bucks,108,95,Home,203,13,Regular Time,No,-263,,229,1
+NBA,2008/2009,Regular Season,2008-10-29,03:30,Los Angeles Lakers,Portland Trail Blazers,96,76,Home,172,20,Regular Time,No,-400,,300,1
+NBA,2008/2009,Regular Season,2008-10-29,23:00,Philadelphia 76ers,Toronto Raptors,84,95,Away,179,11,Regular Time,No,-222,,175,1
+NBA,2008/2009,Regular Season,2008-10-30,00:00,Orlando Magic,Atlanta Hawks,85,99,Away,184,14,Regular Time,No,-357,,280,1
+NBA,2008/2009,Regular Season,2008-10-30,00:00,Washington Wizards,Brooklyn Nets,85,95,Away,180,10,Regular Time,No,-238,,200,1
+NBA,2008/2009,Regular Season,2008-10-30,00:30,New York Knicks,Miami Heat,120,115,Home,235,5,Regular Time,No,-145,,120,1
+NBA,2008/2009,Regular Season,2008-10-30,01:00,Detroit Pistons,Indiana Pacers,100,94,Home,194,6,Regular Time,No,-769,,450,1
+NBA,2008/2009,Regular Season,2008-10-30,01:00,Minnesota Timberwolves,Sacramento Kings,98,96,Home,194,2,Regular Time,No,-238,,200,1
+NBA,2008/2009,Regular Season,2008-10-30,01:00,Oklahoma City Thunder,Milwaukee Bucks,87,98,Away,185,11,Regular Time,No,,,,1
+NBA,2025/2026,Play Offs,2026-05-25,02:00,San Antonio Spurs,Oklahoma City Thunder,103,82,Home,185,21,Regular Time,,-147,,124,
+NBA,2025/2026,Play Offs,2026-05-26,02:00,Cleveland Cavaliers,New York Knicks,93,130,Away,223,37,Regular Time,,,,,
+NBA,2025/2026,Play Offs,2026-05-27,02:30,Oklahoma City Thunder,San Antonio Spurs,127,114,Home,241,13,Regular Time,,-161,,135,
+NBA,2025/2026,Play Offs,2026-05-29,02:30,San Antonio Spurs,Oklahoma City Thunder,118,91,Home,209,27,Regular Time,,-164,,136,
+NBA,2025/2026,Play Offs,2026-05-31,02:00,Oklahoma City Thunder,San Antonio Spurs,103,111,Away,214,8,Regular Time,,-147,,123,
+NBA,2025/2026,Play Offs,2026-06-04,02:30,San Antonio Spurs,New York Knicks,95,105,Away,200,10,Regular Time,,-192,,161,
+NBA,2025/2026,Play Offs,2026-06-06,02:30,San Antonio Spurs,New York Knicks,104,105,Away,209,1,Regular Time,,-238,,195,
+NBA,2025/2026,Play Offs,2026-06-09,02:30,New York Knicks,San Antonio Spurs,111,115,Away,226,4,Regular Time,,-123,,104,
+NBA,2025/2026,Play Offs,2026-06-11,02:30,New York Knicks,San Antonio Spurs,107,106,Home,213,1,Regular Time,,-135,,112,
+NBA,2025/2026,Play Offs,2026-06-14,02:30,San Antonio Spurs,New York Knicks,90,94,Away,184,4,Regular Time,,-200,,166,

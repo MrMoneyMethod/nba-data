@@ -161,64 +161,95 @@ def train_games() -> tuple[dict, pd.DataFrame, list[str]]:
     return metrics, test_pred, feats
 
 
+CLOSING_ODDS_FILES = ["nba_2024_25_closing_lines_ats.csv", "nba_2025_26_closing_lines_ats.csv"]
+# NOTE: nba_2026_27_odds.csv is deliberately NOT used: it is a mislabeled
+# duplicate of the 2025-26 file (identical game_id/date/scores in every row,
+# only micro-differences in odds from a different bookmaker snapshot) -- it
+# contains no 2026-27 fixtures. NBA_Closing_Odds_SAMPLE.csv (20 games, 2008,
+# no spread/total) is likewise excluded from the market test.
+
+
+def _team_name_to_id() -> dict[str, int]:
+    """Latest full 'City Name' -> NBA teamId, from Games.csv (both columns)."""
+    g = pd.read_csv(ROOT / "Games.csv", low_memory=False,
+                    usecols=["gameDateTimeEst", "hometeamId", "hometeamCity", "hometeamName",
+                             "awayteamId", "awayteamCity", "awayteamName"],
+                    parse_dates=["gameDateTimeEst"]).sort_values("gameDateTimeEst")
+    name2id: dict[str, int] = {}
+    for _, r in g.iterrows():  # ascending date: latest name for an id wins
+        name2id[f"{r.hometeamCity} {r.hometeamName}"] = int(r.hometeamId)
+        name2id[f"{r.awayteamCity} {r.awayteamName}"] = int(r.awayteamId)
+    # odds files say "Los Angeles Clippers"; Games.csv switched to "LA Clippers" in 2025-26
+    if "LA Clippers" in name2id:
+        name2id.setdefault("Los Angeles Clippers", name2id["LA Clippers"])
+    return name2id
+
+
 def market_backtest(test_pred: pd.DataFrame, margin_sigma: float = 14.6,
                     total_sigma: float = 18.9) -> dict:
-    odds = pd.read_csv(ROOT / "nba_game_scores_1g_2025_26_sample.csv", parse_dates=["date"])
-    games = pd.read_csv(ROOT / "Games.csv", low_memory=False,
-                        usecols=["hometeamId", "hometeamCity", "hometeamName",
-                                 "awayteamId", "awayteamCity", "awayteamName"])
-    slug = lambda city, name: f"{city} {name}".lower().replace(" ", "_")  # noqa: E731
-    home_map = {slug(c, n): i for i, c, n in zip(games.hometeamId, games.hometeamCity, games.hometeamName)}
-    away_map = {slug(c, n): i for i, c, n in zip(games.awayteamId, games.awayteamCity, games.awayteamName)}
-    odds["hometeamId"] = odds.home_team.map(home_map)
-    odds["awayteamId"] = odds.away_team.map(away_map)
+    from scipy.stats import norm
+
+    name2id = _team_name_to_id()
+    frames = []
+    for f in CLOSING_ODDS_FILES:
+        d = pd.read_csv(ROOT / f, parse_dates=["date_et"])
+        d["date"] = d["date_et"].dt.normalize()
+        frames.append(d)
+    odds = pd.concat(frames, ignore_index=True)
+    odds["hometeamId"] = odds.home_team.map(name2id)
+    odds["awayteamId"] = odds.away_team.map(name2id)
+
     left = test_pred.copy()
     left["date"] = left["date"].dt.normalize()
     m = left.merge(odds, on=["date", "hometeamId", "awayteamId"], how="inner",
                    suffixes=("", "_odds"))
-    out: dict = {"matched_games": int(len(m)),
+    if "season_odds" in m.columns:  # odds season label, e.g. '2024-25' (suffix="_odds" merge)
+        m = m.rename(columns={"season_odds": "odds_season"})
+    out: dict = {"source_files": CLOSING_ODDS_FILES,
+                 "matched_games": int(len(m)),
                  "odds_rows": int(len(odds)),
-                 "unmatched_odds_rows": int(len(odds) - len(m))}
+                 "unmatched_odds_rows": int(len(odds) - len(m)),
+                 "by_odds_season": ({str(s): int(n) for s, n in m.groupby("odds_season").size().items()}
+                                    if len(m) else {})}
     if len(m) < 50:
         out["note"] = "Too few matched games for a market comparison."
         return out
-    # Moneyline: model accuracy where it disagrees with the market favourite
-    fav_home = m.home_money_line < m.away_money_line
+    fav_home = m.close_home_win_prob >= 0.5
+    disagree = (m.p_home_win >= 0.5) != fav_home
+    edge = (m.p_home_win - m.close_home_win_prob).abs() >= 0.05
     out["moneyline"] = {
-        "market_favourite_accuracy": float((fav_home == (m.home_score > m.away_score)).mean()),
+        "market_favourite_accuracy": float((fav_home == (m.home_win == 1)).mean()),
         "model_accuracy": float(((m.p_home_win >= 0.5) == (m.home_win == 1)).mean()),
-        "model_accuracy_when_disagreeing_with_market": float(
-            (((m.p_home_win >= 0.5) == (m.home_win == 1))[(m.p_home_win >= 0.5) != fav_home]).mean())
-        if ((m.p_home_win >= 0.5) != fav_home).any() else None,
-        "n_disagreements": int(((m.p_home_win >= 0.5) != fav_home).sum()),
+        "model_accuracy_when_disagreeing_with_market":
+            float((((m.p_home_win >= 0.5) == (m.home_win == 1))[disagree]).mean()) if disagree.any() else None,
+        "n_disagreements": int(disagree.sum()),
         "model_log_loss": float(log_loss(m.home_win, m.p_home_win)),
+        "market_log_loss_close_no_vig": float(log_loss(m.home_win, m.close_home_win_prob)),
+        "market_log_loss_open_no_vig": float(log_loss(m.home_win, m.open_home_win_prob)),
+        "model_accuracy_when_edge_ge_5pts": float((((m.p_home_win >= 0.5) == (m.home_win == 1))[edge]).mean()) if edge.any() else None,
+        "n_edge_ge_5pts": int(edge.sum()),
+        "model_mean_prob": float(m.p_home_win.mean()),
+        "market_mean_prob": float(m.close_home_win_prob.mean()),
+        "actual_home_win_rate": float(m.home_win.mean()),
     }
-
-    def implied(p_ml: pd.Series) -> pd.Series:
-        return np.where(p_ml < 0, -p_ml / (-p_ml + 100), 100 / (p_ml + 100))
-
-    mkt_p = implied(m.home_money_line) / (implied(m.home_money_line) + implied(m.away_money_line))
-    both = m.home_money_line.notna() & m.away_money_line.notna()
-    out["moneyline"]["market_log_loss_no_vig"] = float(log_loss(m.home_win[both], mkt_p[both]))
-    # Spread: home covers when actual margin > -home_point_spread
-    from scipy.stats import norm
-    p_cover = 1 - norm.cdf(-m.home_point_spread, loc=m.pred_margin, scale=margin_sigma)
-    pick_home = p_cover >= 0.5
-    actual_cover = m.margin > (-m.home_point_spread)
-    push = m.margin == (-m.home_point_spread)
-    out["spread"] = {"model_ats_accuracy_excl_pushes": float((pick_home[~push] == actual_cover[~push]).mean()),
+    p_cover = 1 - norm.cdf(-m.close_spread_home, loc=m.pred_margin, scale=margin_sigma)
+    actual_cover = m.margin > (-m.close_spread_home)
+    push = m.margin == (-m.close_spread_home)
+    out["spread"] = {"model_ats_accuracy_excl_pushes": float(((p_cover >= 0.5)[~push] == actual_cover[~push]).mean()),
+                     "home_cover_rate_excl_pushes": float(actual_cover[~push].mean()),
                      "pushes": int(push.sum()), "n": int(len(m))}
-    p_over = 1 - norm.cdf(m.over_under, loc=m.pred_total, scale=total_sigma)
-    actual_over = m.total > m.over_under
-    push_t = m.total == m.over_under
+    p_over = 1 - norm.cdf(m.close_total, loc=m.pred_total, scale=total_sigma)
+    actual_over = m.total > m.close_total
+    push_t = m.total == m.close_total
     out["total_market"] = {"model_ou_accuracy_excl_pushes": float(((p_over >= 0.5)[~push_t] == actual_over[~push_t]).mean()),
+                           "over_rate_excl_pushes": float(actual_over[~push_t].mean()),
                            "pushes": int(push_t.sum()), "n": int(len(m))}
     out["margin_mae_on_market_games"] = float(mean_absolute_error(m.margin, m.pred_margin))
     out["total_mae_on_market_games"] = float(mean_absolute_error(m.total, m.pred_total))
-    test_pred_out = m[["date", "home_team", "away_team", "home_score", "away_score",
-                       "p_home_win", "pred_margin", "home_point_spread",
-                       "pred_total", "over_under"]]
-    test_pred_out.to_csv(REPORTS / "market_backtest_games.csv", index=False)
+    keep = ["date", "home_team", "away_team", "home_score", "away_score", "home_win",
+            "p_home_win", "open_home_win_prob", "close_home_win_prob",
+            "pred_margin", "close_spread_home", "pred_total", "close_total"]
+    m[keep].to_csv(REPORTS / "market_backtest_games.csv", index=False)
     return out
 
 
@@ -254,7 +285,7 @@ def main() -> None:
     game_metrics, test_pred, _ = train_games()
     market = market_backtest(test_pred, game_metrics['margin_resid_sigma'], game_metrics['total_resid_sigma'])
     player_metrics = train_players()
-    all_metrics = {"game": game_metrics, "market_backtest_2025_26": market, "player_props": player_metrics}
+    all_metrics = {"game": game_metrics, "market_backtest_closing_2024_26": market, "player_props": player_metrics}
     (REPORTS / "metrics.json").write_text(json.dumps(all_metrics, indent=2), encoding="utf-8")
 
     md = ["# Backtest results", "",
@@ -272,18 +303,28 @@ def main() -> None:
            f"{game_metrics['margin_test_zero_baseline']['mae']:.2f}), residual σ={game_metrics['margin_resid_sigma']:.1f}",
            f"- Total MAE={game_metrics['total_test']['mae']:.2f} (train-mean baseline "
            f"{game_metrics['total_test_mean_baseline']['mae']:.2f}), residual σ={game_metrics['total_resid_sigma']:.1f}",
-           "", "## vs. the market (2025-26 odds sample, test-window games only)", "",
-           f"- Matched {market.get('matched_games', 0)} of {market.get('odds_rows', 0)} odds rows."]
+           "", "## vs. the market (closing lines 2024-25 + 2025-26, test-window games only)", "",
+           f"- Matched {market.get('matched_games', 0)} of {market.get('odds_rows', 0)} closing-line rows "
+           f"(by season: {market.get('by_odds_season', {})}). The mislabeled duplicate "
+           "`nba_2026_27_odds.csv` (same game_ids/scores as 2025-26) is excluded -- see audit.",
+           "- Market inputs are evaluation-only: the files' outcome columns "
+           "(`ats_result`, `favorite_won`, ...) are never used as features."]
     if "moneyline" in market:
         ml, sp, tm = market["moneyline"], market["spread"], market["total_market"]
         md += [f"- Moneyline: model acc={ml['model_accuracy']:.3f} vs market-favourite acc="
                f"{ml['market_favourite_accuracy']:.3f}; model logloss={ml['model_log_loss']:.3f} vs "
-               f"no-vig market logloss={ml['market_log_loss_no_vig']:.3f}; disagrees with market on "
+               f"close logloss={ml['market_log_loss_close_no_vig']:.3f} (open: "
+               f"{ml['market_log_loss_open_no_vig']:.3f}); disagrees with market on "
                f"{ml['n_disagreements']} games"
                + (f" (acc there: {ml['model_accuracy_when_disagreeing_with_market']:.3f})"
-                  if ml["model_accuracy_when_disagreeing_with_market"] is not None else ""),
-               f"- Spread (model margin → cover prob): ATS acc={sp['model_ats_accuracy_excl_pushes']:.3f} excl. {sp['pushes']} pushes",
-               f"- Totals (model total vs O/U): acc={tm['model_ou_accuracy_excl_pushes']:.3f} excl. {tm['pushes']} pushes",
+                  if ml["model_accuracy_when_disagreeing_with_market"] is not None else "")
+               + (f"; when |model-market| >= 5 pts (n={ml['n_edge_ge_5pts']}): acc="
+                  f"{ml['model_accuracy_when_edge_ge_5pts']:.3f}"
+                  if ml["model_accuracy_when_edge_ge_5pts"] is not None else ""),
+               f"- Spread (model margin vs close_spread_home): ATS acc={sp['model_ats_accuracy_excl_pushes']:.3f} "
+               f"excl. {sp['pushes']} pushes (home covers {sp['home_cover_rate_excl_pushes']:.3f} of the time)",
+               f"- Totals (model total vs close_total): acc={tm['model_ou_accuracy_excl_pushes']:.3f} "
+               f"excl. {tm['pushes']} pushes (over hits {tm['over_rate_excl_pushes']:.3f})",
                "", "_Honest expectation: a box-score form model should be close to, but not beat, "
                "the closing market, which also prices injuries/lineups/news. Gaps vs. the market are "
                "reported, not hidden._"]

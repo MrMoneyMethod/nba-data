@@ -39,6 +39,8 @@ python3 -m venv .venv
 | `PlayerStatisticsExtended…part01-19` | 453 MB | 838,804 player-games | modern era |
 | `PlayByPlay.parquet.part01-38` | 933 MB | 18,727,295 plays, 89 cols | reassembles to valid parquet |
 | `nba_game_scores_1g_2025_26_sample.csv` | 0.7 MB | 1,267 games w/ odds | 2025-26 only |
+| `nba_2024_25_closing_lines_ats.csv` + `nba_2025_26_closing_lines_ats.csv` | 0.6 MB | 2,629 games w/ open+close lines | 2024-25 + 2025-26, regular+postseason |
+| `nba_2026_27_odds.csv` | 0.3 MB | 1,315 rows | ⚠️ mislabeled duplicate of 2025-26 (same game_ids/scores) — excluded |
 
 Known quirks found in the audit: 4 tied games in the 1940s (dropped — the NBA
 cannot tie), `attendance` is 98% null (unused), advanced (`Extended`) stats
@@ -89,14 +91,16 @@ From `reports/backtest.md` (regenerate with `scripts/train.py`):
 - **Margin MAE 11.5 pts** (baseline 13.1), **total MAE 15.3 pts** (baseline 23.9).
 - **Player props (rotation players, test):** points MAE 5.09 (last-10-avg
   baseline 5.24), rebounds 2.05 (2.12), assists 1.44 (1.49).
-- **vs. the 2025-26 closing market (all 1,267 odds rows matched):** model
-  moneyline accuracy 0.674 vs market-favourite 0.665, and 0.523 on the 239
-  games where it disagrees with the market; but model log-loss 0.608 still
-  trails no-vig market 0.591, and ATS (0.484) / O-U (0.482) picks are
-  coin-flips against closing lines. **The market — which prices injuries,
-  lineups and news this box-score model cannot see — remains better
-  calibrated. This engine is a strong independent baseline, not a proven
-  market-beater.** Per-game market comparisons: `reports/market_backtest_games.csv`.
+- **vs. the closing market, 2024-25 + 2025-26 (2,622 of 2,629 rows matched;
+  from the second upload, superseding the old 1-season sample):** model moneyline
+  accuracy 0.658 vs market-favourite 0.688; model log-loss 0.618 vs close
+  0.581 (open 0.591); only 0.404 accuracy on the 416 games where the model
+  disagrees with the market, and ATS (0.493) / O-U (0.485) picks remain
+  coin-flips. The earlier 1-season sample had flattered the model (0.674 vs
+  0.665) — with two seasons the verdict is clear: **the market, which prices
+  injuries/lineups/news this box-score model cannot see, is better. This
+  engine is a strong independent baseline, not a market-beater.**
+  Per-game comparisons: `reports/market_backtest_games.csv`.
 
 ## Repo layout
 
