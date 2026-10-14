@@ -1,0 +1,23 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Reassembled raw files are byte-concatenations of the tracked .part* files.
+# They are ~2.8 GB and must never be committed; regenerate with:
+#   .venv/bin/python scripts/reassemble.py
+data/raw_reassembled/
+data/injuries/*.json
+
+# Derived datasets / model artefacts (regenerable, large)
+data/processed/*.parquet
+data/processed/*.csv
+models/*.joblib
+models/*.json
+!models/.gitkeep
+reports/*.html
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

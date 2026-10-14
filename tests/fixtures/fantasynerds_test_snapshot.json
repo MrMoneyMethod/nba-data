@@ -1,0 +1,19 @@
+{
+  "season": 2021,
+  "teams": {
+    "MIL": [
+      {"playerId": "22", "name": "Giannis Antetokounmpo", "position": "PF", "injury": "Knee", "game_status": "Game Time Decision", "last_update": "2021-04-13"},
+      {"playerId": "165", "name": "P.J. Tucker", "position": "SF", "injury": "Calf", "game_status": "Game Time Decision", "last_update": "2021-04-13"}
+    ],
+    "LAL": [
+      {"playerId": "53", "name": "LeBron James", "position": "SF", "injury": "Ankle", "game_status": "Expected to be out until at least May 2", "last_update": "2021-04-13"},
+      {"playerId": "13", "name": "Anthony Davis", "position": "PF", "injury": "Calf", "game_status": "Expected to be out until at least Apr 22", "last_update": "2021-04-13"}
+    ],
+    "DEN": [
+      {"playerId": "236", "name": "Jamal Murray", "position": "PG", "injury": "Knee", "game_status": "Out for the season", "last_update": "2021-04-13"}
+    ],
+    "GS": [
+      {"playerId": "19", "name": "Klay Thompson", "position": "SG", "injury": "Achilles", "game_status": "Out for the season", "last_update": "2021-04-13"}
+    ]
+  }
+}
