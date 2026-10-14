@@ -102,6 +102,46 @@ From `reports/backtest.md` (regenerate with `scripts/train.py`):
   engine is a strong independent baseline, not a market-beater.**
   Per-game comparisons: `reports/market_backtest_games.csv`.
 
+## Injury data (FantasyNerds -- tested)
+
+`GET https://api.fantasynerds.com/v1/nba/injuries?apikey=TEST` was tested live:
+
+- **It works** -- clean JSON: `season` + per-team lists of
+  `{playerId, name, position, injury, game_status, last_update}`.
+- **But `TEST` is a frozen demo:** `season: 2021`, every `last_update` is
+  2021-04-13. It cannot be used for predictions or backtests.
+- **No history:** the API is a current snapshot only, so it cannot create
+  leakage-safe historical features for 2024-26. With a real key it is useful
+  live, and for building history by snapshotting daily from now on.
+- `game_status` is free text ("Out for the season", "Expected to be out
+  until at least Apr 28", "Game Time Decision") and is parsed in
+  `src/nba_predict/injuries.py` into an availability weight
+  (OUT=1, GTD=0.5 -- documented assumption).
+
+Usage:
+
+```bash
+export FANTASYNERDS_API_KEY=<real key>
+.venv/bin/python scripts/fetch_injuries.py          # saves data/injuries/fantasynerds_<date>.json
+.venv/bin/python scripts/predict.py player --name "Giannis Antetokounmpo" \
+    --injuries data/injuries/fantasynerds_<date>.json   # OUT->0, GTD->expected-value gating
+.venv/bin/python scripts/predict.py game --home Bucks --away Lakers \
+    --injuries data/injuries/fantasynerds_<date>.json   # per-team missing-production context
+```
+
+Game win probabilities are deliberately **not** numerically adjusted by
+injuries yet: there is no historical injury dataset here to learn that
+coefficient from, and inventing one would be fabrication. Accumulated daily
+snapshots are how that dataset gets built. Stale/TEST snapshots are flagged
+in every output (`injuries.freshness.stale`) and must be ignored.
+
+The previously tested `mxufc29/nbainjuries` package (official NBA report
+PDFs, 2021-22 onward) could not run in this sandbox -- it needs a Java
+runtime for tabula-py (absent) and direct access to ak-static.cms.nba.com
+(blocked here) -- though its underlying PDFs and output format were
+verified externally. It remains the better *historical* source if run in
+an environment with Java + normal internet access.
+
 ## Repo layout
 
 ```

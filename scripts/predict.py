@@ -32,9 +32,13 @@ def main() -> int:
     g.add_argument("--total", type=float, default=None, help="market over/under, e.g. 224.5")
     g.add_argument("--home-ml", type=float, default=None)
     g.add_argument("--away-ml", type=float, default=None)
+    g.add_argument("--injuries", default=None,
+                   help="FantasyNerds injuries JSON snapshot (see scripts/fetch_injuries.py)")
 
     p = sub.add_parser("player", help="project a player's pts/reb/ast")
     p.add_argument("--name", required=True)
+    p.add_argument("--injuries", default=None,
+                   help="FantasyNerds injuries JSON snapshot (see scripts/fetch_injuries.py)")
     p.add_argument("--date", type=dt.date.fromisoformat, default=None)
     loc = p.add_mutually_exclusive_group()
     loc.add_argument("--home", action="store_true", default=True)
@@ -44,9 +48,11 @@ def main() -> int:
     try:
         if args.cmd == "game":
             out = predict_game(args.home, args.away, args.date, args.spread,
-                               args.total, args.home_ml, args.away_ml)
+                               args.total, args.home_ml, args.away_ml,
+                               injuries_path=args.injuries)
         else:
-            out = predict_player(args.name, home=args.home, game_date=args.date)
+            out = predict_player(args.name, home=args.home, game_date=args.date,
+                                 injuries_path=args.injuries)
     except (ValueError, FileNotFoundError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1

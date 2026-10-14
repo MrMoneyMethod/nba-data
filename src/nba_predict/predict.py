@@ -53,7 +53,8 @@ def predict_game(home_query: str, away_query: str,
                  game_date: dt.date | None = None,
                  market_spread: float | None = None,   # home spread, e.g. -4.5
                  market_total: float | None = None,
-                 home_ml: float | None = None, away_ml: float | None = None) -> dict:
+                 home_ml: float | None = None, away_ml: float | None = None,
+                 injuries_path: str | None = None) -> dict:
     bundle = joblib.load(MODELS / "game_models.joblib")
     form = pd.read_parquet(PROC / "team_form.parquet")
     home, away = _find_team(form, home_query), _find_team(form, away_query)
@@ -111,11 +112,33 @@ def predict_game(home_query: str, away_query: str,
         mkt = _imp(home_ml) / (_imp(home_ml) + _imp(away_ml))
         out["market_p_home_win_no_vig"] = round(float(mkt), 4)
         out["edge_home_win_prob"] = round(p_home - float(mkt), 4)
+    if injuries_path:
+        from .injuries import freshness, load_snapshot, team_injury_load
+        snap, meta = load_snapshot(injuries_path)
+        team_injury_load = team_injury_load(snap)
+        by_team = team_injury_load.set_index("team_name")
+        inj = {"source": str(injuries_path), **meta,
+               "freshness": freshness(meta, game_date),
+               "note": ("Injury load is status-weighted missing production from current form. "
+                        "It is reported for context and does NOT adjust the win probability: "
+                        "no historical injury dataset exists yet to learn that coefficient from. "
+                        "A stale/TEST snapshot (see freshness) must not be used at all.")}
+        for label, team_full in [("home", out["home_team"]), ("away", out["away_team"])]:
+            if team_full in by_team.index:
+                r = by_team.loc[team_full]
+                inj[label] = {"team": team_full, "players_listed": int(r.players_listed),
+                              "weighted_missing_minutes": round(float(r.weighted_missing_minutes), 1),
+                              "weighted_missing_points": round(float(r.weighted_missing_points), 1)}
+            else:
+                inj[label] = {"team": team_full, "players_listed": 0,
+                              "weighted_missing_minutes": 0.0, "weighted_missing_points": 0.0}
+        out["injuries"] = inj
     return out
 
 
 def predict_player(name_query: str, home: bool = True,
-                   game_date: dt.date | None = None) -> dict:
+                   game_date: dt.date | None = None,
+                   injuries_path: str | None = None) -> dict:
     bundle = joblib.load(MODELS / "player_models.joblib")
     form = pd.read_parquet(PROC / "player_form.parquet")
     full = (_norm(form.firstName.fillna("")) + " " + _norm(form.lastName.fillna("")))
@@ -145,4 +168,25 @@ def predict_player(name_query: str, home: bool = True,
     out["note"] = ("Projection uses prior-only form features (last-5/10 + season averages). "
                    "Assumes the player is active/healthy and plays normal rotation minutes "
                    "-- always check injury reports before betting a prop.")
+    if injuries_path:
+        from .injuries import freshness, load_snapshot, player_injury
+        snap, meta = load_snapshot(injuries_path)
+        info = player_injury(snap, f"{p.firstName} {p.lastName}")
+        out["injuries_freshness"] = freshness(meta, game_date)
+        if info is None:
+            out["injury"] = {"listed": False,
+                             "note": "Player not on the injury snapshot (does not guarantee availability)."}
+        else:
+            factor = info["availability_factor"]
+            out["injury"] = {"listed": True, **info,
+                             "raw_proj_points": out["proj_points"],
+                             "raw_proj_rebounds": out["proj_rebounds"],
+                             "raw_proj_assists": out["proj_assists"]}
+            # expected-value gating: OUT -> 0, GTD -> scaled by availability (0.5 assumption)
+            out["proj_points"] = round(out["proj_points"] * factor, 1)
+            out["proj_rebounds"] = round(out["proj_rebounds"] * factor, 1)
+            out["proj_assists"] = round(out["proj_assists"] * factor, 1)
+            out["note"] += (f" Injury-gated: {info['status_class']} ({info['game_status']}), "
+                            f"availability factor {factor:.1f} applied to projections. "
+                            "If the snapshot is stale/TEST data, ignore this gating entirely.")
     return out
