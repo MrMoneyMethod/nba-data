@@ -1,0 +1,308 @@
+{
+  "game": {
+    "split": {
+      "train_end": "2023-10-01",
+      "valid_end": "2024-10-01",
+      "train_n": 65493,
+      "valid_n": 1318,
+      "test_n": 2635
+    },
+    "features": [
+      "season",
+      "is_playoffs",
+      "home_rest_days",
+      "home_b2b",
+      "home_games_last_7d_prior",
+      "home_pts_l5",
+      "home_opp_pts_l5",
+      "home_margin_l5",
+      "home_win_l5",
+      "home_off_rtg_l5",
+      "home_def_rtg_l5",
+      "home_pace_l5",
+      "home_efg_l5",
+      "home_tov_pct_l5",
+      "home_orb_pct_l5",
+      "home_ft_rate_l5",
+      "home_ast_l5",
+      "home_pts_l10",
+      "home_opp_pts_l10",
+      "home_margin_l10",
+      "home_win_l10",
+      "home_off_rtg_l10",
+      "home_def_rtg_l10",
+      "home_pace_l10",
+      "home_efg_l10",
+      "home_tov_pct_l10",
+      "home_orb_pct_l10",
+      "home_ft_rate_l10",
+      "home_ast_l10",
+      "home_pts_season",
+      "home_opp_pts_season",
+      "home_margin_season",
+      "home_win_season",
+      "home_off_rtg_season",
+      "home_def_rtg_season",
+      "home_pace_season",
+      "home_efg_season",
+      "home_tov_pct_season",
+      "home_orb_pct_season",
+      "home_ft_rate_season",
+      "home_ast_season",
+      "away_rest_days",
+      "away_b2b",
+      "away_games_last_7d_prior",
+      "away_pts_l5",
+      "away_opp_pts_l5",
+      "away_margin_l5",
+      "away_win_l5",
+      "away_off_rtg_l5",
+      "away_def_rtg_l5",
+      "away_pace_l5",
+      "away_efg_l5",
+      "away_tov_pct_l5",
+      "away_orb_pct_l5",
+      "away_ft_rate_l5",
+      "away_ast_l5",
+      "away_pts_l10",
+      "away_opp_pts_l10",
+      "away_margin_l10",
+      "away_win_l10",
+      "away_off_rtg_l10",
+      "away_def_rtg_l10",
+      "away_pace_l10",
+      "away_efg_l10",
+      "away_tov_pct_l10",
+      "away_orb_pct_l10",
+      "away_ft_rate_l10",
+      "away_ast_l10",
+      "away_pts_season",
+      "away_opp_pts_season",
+      "away_margin_season",
+      "away_win_season",
+      "away_off_rtg_season",
+      "away_def_rtg_season",
+      "away_pace_season",
+      "away_efg_season",
+      "away_tov_pct_season",
+      "away_orb_pct_season",
+      "away_ft_rate_season",
+      "away_ast_season",
+      "elo_home_prior",
+      "elo_away_prior",
+      "elo_diff",
+      "diff_pts_l5",
+      "diff_opp_pts_l5",
+      "diff_margin_l5",
+      "diff_win_l5",
+      "diff_off_rtg_l5",
+      "diff_def_rtg_l5",
+      "diff_pace_l5",
+      "diff_efg_l5",
+      "diff_tov_pct_l5",
+      "diff_orb_pct_l5",
+      "diff_ft_rate_l5",
+      "diff_ast_l5",
+      "diff_pts_l10",
+      "diff_opp_pts_l10",
+      "diff_margin_l10",
+      "diff_win_l10",
+      "diff_off_rtg_l10",
+      "diff_def_rtg_l10",
+      "diff_pace_l10",
+      "diff_efg_l10",
+      "diff_tov_pct_l10",
+      "diff_orb_pct_l10",
+      "diff_ft_rate_l10",
+      "diff_ast_l10",
+      "diff_pts_season",
+      "diff_opp_pts_season",
+      "diff_margin_season",
+      "diff_win_season",
+      "diff_off_rtg_season",
+      "diff_def_rtg_season",
+      "diff_pace_season",
+      "diff_efg_season",
+      "diff_tov_pct_season",
+      "diff_orb_pct_season",
+      "diff_ft_rate_season",
+      "diff_ast_season",
+      "rest_diff"
+    ],
+    "blend": {
+      "win_elo_weight_chosen_on_valid": 0.55,
+      "margin_elo_weight_chosen_on_valid": 0.65,
+      "elo_margin_coef": [
+        0.023844019161820853,
+        1.3294200677965657
+      ]
+    },
+    "winner_valid": {
+      "n": 1318,
+      "accuracy": 0.6433990895295902,
+      "log_loss": 0.6219694523019161,
+      "brier": 0.21712064755684507,
+      "roc_auc": 0.7094278605231428
+    },
+    "winner_valid_hgb_raw": {
+      "n": 1318,
+      "accuracy": 0.6320182094081942,
+      "log_loss": 0.6370319455312832,
+      "brier": 0.22347092620940973,
+      "roc_auc": 0.6842813233992431
+    },
+    "winner_valid_elo_baseline": {
+      "n": 1318,
+      "accuracy": 0.6479514415781487,
+      "log_loss": 0.6361531201479836,
+      "brier": 0.2213857917888203,
+      "roc_auc": 0.7111214881620306
+    },
+    "winner_valid_home_baseline_accuracy": 0.547040971168437,
+    "margin_valid": {
+      "n": 1318,
+      "mae": 11.219217530481595,
+      "rmse": 14.330753072679911
+    },
+    "total_valid": {
+      "n": 1318,
+      "mae": 15.18519129960056,
+      "rmse": 18.917787680472948
+    },
+    "margin_valid_zero_baseline": {
+      "n": 1318,
+      "mae": 12.633535660091047,
+      "rmse": 15.836920233701347
+    },
+    "total_valid_mean_baseline": {
+      "n": 1318,
+      "mae": 22.932097748541366,
+      "rmse": 28.49270609304385
+    },
+    "winner_test": {
+      "n": 2635,
+      "accuracy": 0.6576850094876661,
+      "log_loss": 0.6182022053316976,
+      "brier": 0.21452184602122737,
+      "roc_auc": 0.7178052880585616
+    },
+    "winner_test_hgb_raw": {
+      "n": 2635,
+      "accuracy": 0.6398481973434536,
+      "log_loss": 0.6368541520508416,
+      "brier": 0.2231435811203961,
+      "roc_auc": 0.6861425950416302
+    },
+    "winner_test_elo_baseline": {
+      "n": 2635,
+      "accuracy": 0.6675521821631879,
+      "log_loss": 0.6345966102547715,
+      "brier": 0.21836345235263388,
+      "roc_auc": 0.7197569942444166
+    },
+    "winner_test_home_baseline_accuracy": 0.5506641366223909,
+    "margin_test": {
+      "n": 2635,
+      "mae": 11.47260349017156,
+      "rmse": 14.668862704739855
+    },
+    "total_test": {
+      "n": 2635,
+      "mae": 15.265562263614864,
+      "rmse": 19.075304531527557
+    },
+    "margin_test_zero_baseline": {
+      "n": 2635,
+      "mae": 13.070588235294117,
+      "rmse": 16.331050970664798
+    },
+    "total_test_mean_baseline": {
+      "n": 2635,
+      "mae": 23.85317727511241,
+      "rmse": 29.103104045104192
+    },
+    "margin_resid_sigma": 14.310274345823483,
+    "total_resid_sigma": 18.893833926141486
+  },
+  "market_backtest_2025_26": {
+    "matched_games": 1267,
+    "odds_rows": 1267,
+    "unmatched_odds_rows": 0,
+    "moneyline": {
+      "market_favourite_accuracy": 0.665351223362273,
+      "model_accuracy": 0.6740331491712708,
+      "model_accuracy_when_disagreeing_with_market": 0.5230125523012552,
+      "n_disagreements": 239,
+      "model_log_loss": 0.6078048641339134,
+      "market_log_loss_no_vig": 0.5906203309263734
+    },
+    "spread": {
+      "model_ats_accuracy_excl_pushes": 0.4843624699278268,
+      "pushes": 20,
+      "n": 1267
+    },
+    "total_market": {
+      "model_ou_accuracy_excl_pushes": 0.48242811501597443,
+      "pushes": 15,
+      "n": 1267
+    },
+    "margin_mae_on_market_games": 11.674266642250922,
+    "total_mae_on_market_games": 15.468128831752985
+  },
+  "player_props": {
+    "points": {
+      "test_all_prior5": {
+        "n": 68919,
+        "mae": 4.415068861763608,
+        "rmse": 6.005194640470042
+      },
+      "test_rotation_min12": {
+        "n": 51878,
+        "mae": 5.085683594484519,
+        "rmse": 6.618758218936472
+      },
+      "test_rotation_baseline_last10avg": {
+        "n": 51878,
+        "mae": 5.237725483230803,
+        "rmse": 6.82542900315228
+      },
+      "test_rotation_n": 51878
+    },
+    "rebounds": {
+      "test_all_prior5": {
+        "n": 68919,
+        "mae": 1.8317387270517411,
+        "rmse": 2.500301421837682
+      },
+      "test_rotation_min12": {
+        "n": 51878,
+        "mae": 2.0533238672003518,
+        "rmse": 2.703447752197709
+      },
+      "test_rotation_baseline_last10avg": {
+        "n": 51878,
+        "mae": 2.1194218410470964,
+        "rmse": 2.789926587182585
+      },
+      "test_rotation_n": 51878
+    },
+    "assists": {
+      "test_all_prior5": {
+        "n": 68919,
+        "mae": 1.2327767587534741,
+        "rmse": 1.7623136065022065
+      },
+      "test_rotation_min12": {
+        "n": 51878,
+        "mae": 1.4423194309243024,
+        "rmse": 1.9562641593812715
+      },
+      "test_rotation_baseline_last10avg": {
+        "n": 51878,
+        "mae": 1.486779720369585,
+        "rmse": 2.014485139327334
+      },
+      "test_rotation_n": 51878
+    }
+  }
+}
